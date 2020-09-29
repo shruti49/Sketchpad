@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="shapes"> 
+        <button data-shape="rectangle">rect</button>
+        <button data-shape="circle">circle</button>
+        <button data-shape="ellipse">ellipse</button>
+        <button data-shape="line">line</button>
+        <button data-shape="polyline">polyline</button>
+        <button data-shape="triangle">triangle</button>
+        <button data-shape="polygon">polygon</button>
+    </div>
+<div class="brushes">
+    <button data-brush="pencil">pencil</button>
+    <button data-brush="spray">spray</button>
+</div>
+<div class="commands">
+    <button data-command="undo">undo</button>
+    <button data-command="redo">redo</button>
+    <button data-command="clear">clear</button>
+</div>
+
+<div class="tools">
+    <button data-tool="screenGrab">pan</button>
+    <button data-tool="objectGrab">select</button>
+</div>
+    <canvas id="myCanvas"></canvas>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.1.0/fabric.min.js"></script>
+<script src="index.js"></script>
+
+</html>
