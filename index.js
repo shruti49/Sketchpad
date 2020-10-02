@@ -1,70 +1,106 @@
 
-	const Tool_SCREEENGRAB = "screenGrab";
-  const Tool_OBJECTGRAB = "objectGrab";
+const Tool_SCREEENGRAB = "screenGrab";
+const Tool_OBJECTGRAB = "objectGrab";
 
-  const Tool_PENCILBRUSH = "pencilBrush";
-  const Tool_SPRAYBRUSH = "pencilBrush";
+const Tool_PENCILBRUSH = "pencilBrush";
+const Tool_SPRAYBRUSH = "sprayBrush";
 
-  const SHAPE_LINE = "line";
-	const SHAPE_RECTANGLE = "rectangle";
-  const SHAPE_CIRCLE = "circle";
-  const SHAPE_POLYLINE = "circle";
-  const SHAPE_TRIANGLE= "circle";
-  const SHAPE_ELLIPSE= "circle";
-  const SHAPE_POLYGON= "circle";
+const SHAPE_LINE = "line";
+const SHAPE_RECTANGLE = "rectangle";
+const SHAPE_CIRCLE = "circle";
+const SHAPE_POLYLINE = "circle";
+const SHAPE_TRIANGLE = "circle";
+const SHAPE_ELLIPSE = "circle";
+const SHAPE_POLYGON = "circle";
 
-	class Paint {
-		constructor(canvasId) {
-			this.canvasId = canvasId;
-		}
+class Paint {
+	constructor(canvasId) {
+		this.canvasId = canvasId;
+		this.mousePress = false;
+		this.canvas = new fabric.Canvas(this.canvasId, {
+			selection: false,
+			backgroundColor: "lightblue",
+			isDrawingMode: true
+		});
+	}
 
-		set activatedTool(tool) {
-			this.tool = tool;
-			console.log(this.tool);
-		}
+	set activatedTool(tool) {
+		this.tool = tool;
+		console.log(this.tool);
+	}
 
-		set lineWidth(linewidth) {
-			this.line_Width = linewidth;
-			this.context.lineWidth = this.line_Width;
-			console.log(linewidth);
-		}
+	set lineWidth(linewidth) {
+		this.line_Width = linewidth;
+		this.context.lineWidth = this.line_Width;
+		console.log(linewidth);
+	}
 
-		set selectedColor(color) {
-			this.color = color;
-			this.context.strokeStyle = this.color;
-			console.log(color);
-		}
+	set selectedColor(color) {
+		this.color = color;
+		this.context.strokeStyle = this.color;
+		console.log(color);
+	}
 
-		init() {
-      this.canvas = new fabric.Canvas(this.canvasId, {
-        selection: false,
-        backgroundColor: "lightblue",
-        preserveObjectStacking: true,
-      });
-			this.canvas.on("mouse:down", (event) => this.onMouseDown(event));
-		}
-
-		onMouseDown(event) {
-			console.log("mousedown",event.target);
-			this.canvas.on("mouse:move", (event) => this.onMouseMove(event));
-			this.canvas.on("mouse:up", (event) => this.onMouseUp(event));
-		}
-
-		onMouseMove(event) {
-			console.log("mousemove",event.target);
-			this.canvas.on("mouse:move", (event) => this.onMouseMove(event));
-		}
-
-		onMouseUp(event) {
-			console.log("mouseup",event);
+	init() {
+		//this.canvas.setCursor("crosshair");
+		this.canvas.on("mouse:down", (event) => this.onMouseDown(event));
+		switch (this.tool) {
+			case Tool_PENCILBRUSH:
+                // this.canvas.freeDrawingBrush = new fabric.PencilBrush(this.canvas);              
+                // this.canvas.freeDrawingBrush.color = "black";
+                // this.canvas.freeDrawingBrush.width = 5;
+				break;
+				default:
+					break;
 		}
 	}
-	//INITIALIZING PAINT CLASS
-	let paint = new Paint(myCanvas);
-	paint.activatedTool = Tool_PENCILBRUSH;
-	paint.init();
 
-		
+	onMouseDown(event) {
+		this.canvas.on("mouse:move", (event) => this.onMouseMove(event)); 
+		this.mousePress = true;
+		console.log("mousedown", event.target);
+		switch (this.tool) {
+			case Tool_PENCILBRUSH:
+				//this.canvas.isDrawingMode = true;
+				break;
+				default:
+					break;
+		}
+		this.canvas.renderAll();
+
+	}
+
+	onMouseMove(event) {
+		this.canvas.on("mouse:up", (event) => this.onMouseUp(event));
+
+		console.log(this.mousePress);
+		if(this.mousePress === true) {
+			console.log("mousemove", event.target);
+		}
+		this.canvas.renderAll();
+	}
+
+	onMouseUp(event) {
+		this.mousePress = false;
+		console.log(this.mousePress);
+		console.log("mouseup", event);
+	}
+}
+//INITIALIZING PAINT CLASS
+let paint = new Paint(myCanvas);
+paint.init();
+paint.activatedTool = Tool_PENCILBRUSH;
+
+	document.querySelectorAll("[data-brush]").forEach((item, i) => {
+		item.addEventListener("click", (event) => {
+			document.querySelector("[data-brush].selectedTool").classList.toggle("selectedTool");
+			item.classList.toggle("selectedTool");
+			let activeTool = item.getAttribute("data-brush");
+			paint.activatedTool = activeTool;
+		});
+	});
+
+
 	// 	onMouseMove(event) {
 	// 		this.canvas.onmousemove = (event) => this.onMouseMove(event);
 	// 		this.currentPos = getMouseCoordinates(event, this.canvas);
@@ -156,14 +192,7 @@
 	// 	paint.selectedColor = this.value;
 	// };
 
-	// document.querySelectorAll("[data-tool]").forEach((item, i) => {
-	// 	item.addEventListener("click", (event) => {
-	// 		document.querySelector("[data-tool].selectedTool").classList.toggle("selectedTool");
-	// 		item.classList.toggle("selectedTool");
-	// 		let activeTool = item.getAttribute("data-tool");
-	// 		paint.activatedTool = activeTool;
-	// 	});
-	// });
+
 
 	// document.querySelectorAll("[data-command]").forEach((item, i) => {
 	// 	item.addEventListener("click", (event) => {
