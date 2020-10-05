@@ -20,8 +20,8 @@
         <button data-shape="polygon">polygon</button>
     </div>
 <div class="brushes">
-    <button class="selectedTool" data-brush="pencilBrush">pencil</button>
-    <button data-brush="sprayBrush">spray</button>
+    <button class="pencilBrush" data-brush="pencilBrush">pencil</button>
+    <button class="sparyBrush" data-brush="sprayBrush">spray</button>
 </div>
 <div class="commands">
     <button data-command="undo">undo</button>
@@ -30,10 +30,10 @@
 </div>
 
 <div class="tools">
-    <button data-tool="screenGrab">pan</button>
-    <button data-tool="objectGrab">select</button>
+    <button data-tool="screenGrab" class="screenGrab">pan</button>
+    <button class="objectGrab" data-tool="objectGrab">select</button>
 </div>
-    <canvas id="myCanvas"></canvas>
+    <canvas id="mycanvas"></canvas>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.1.0/fabric.min.js"></script>
 <script src="index.js"></script>
