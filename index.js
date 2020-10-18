@@ -1,39 +1,83 @@
 
- 
-    const initCanvas = (id) => {
-        return new fabric.Canvas(id, {
-            selection: false,
-            backgroundColor: "#fff",
-			isDrawingMode: false,
-			width: 800,
-			height: 600,
-			backgroundColor: "beige"
-        });
-	};
-	
-	const canvas = initCanvas("mycanvas");
+const Tool_SCREEENGRAB = "screenGrab";
+const Tool_OBJECTGRAB = "objectGrab";
+const Tool_PENCILBRUSH = "pencilBrush";
+const Tool_SPRAYBRUSH = "sprayBrush";
+const Tool_LINE = "line";
+const Tool_RECTANGLE = "rectangle";
+const Tool_CIRCLE = "circle";
+const Tool_ERASER = "eraser";
+const Tool_TEXT = "text";
+const Tool_CLEAR = "clear";
+let selectedTool;
+let mousePress = false;
 
-document.querySelector(".pencilBrush").addEventListener("click", function(e) {
+const initCanvas = (id) => {
+	return new fabric.Canvas(id, {
+		selection: false,
+		backgroundColor: "#fff",
+		isDrawingMode: false,
+		width: 800,
+		height: 600,
+		backgroundColor: "beige"
+	});
+};
+
+const canvas = initCanvas("mycanvas");
+
+document.querySelector(".pencilBrush").addEventListener("click", function (e) {
+	selectedTool = Tool_PENCILBRUSH;
+	mousePress = true;
 	canvas.isDrawingMode = true;
-	canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);              
+	canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
 	// canvas.freeDrawingBrush.color = mycolor.value;
 	// canvas.freeDrawingBrush.width = drawingLineWidthEl.value;
 })
 
-document.querySelector(".sparyBrush").addEventListener("click", function(e) {
+document.querySelector(".sparyBrush").addEventListener("click", function (e) {
+	selectedTool = Tool_SPRAYBRUSH;
+	mousePress = true;
 	canvas.isDrawingMode = true;
-	canvas.freeDrawingBrush = new fabric.SprayBrush(canvas);             
+	canvas.freeDrawingBrush = new fabric.SprayBrush(canvas);
 	// canvas.freeDrawingBrush.color = mycolor.value;
 	// canvas.freeDrawingBrush.width = drawingLineWidthEl.value;
 })
 
-document.querySelector(".objectGrab").addEventListener("click", function(e) {
+document.querySelector(".objectGrab").addEventListener("click", function (e) {
+	selectedTool = Tool_OBJECTGRAB;
+	mousePress = true;
 	canvas.isDrawingMode = false;
 })
 
+document.querySelector(".screenGrab").addEventListener("click", function (event) {
+	selectedTool = Tool_SCREEENGRAB;
+	mousePress = true;
+	canvas.isDrawingMode = false;
+})
 
+canvas.on("mouse:down", (event) => {
+	console.log(event);
+	if (mousePress === true && selectedTool === Tool_OBJECTGRAB) {
+		canvas.setCursor("grabbing");
+	}
+});
 
+canvas.on("mouse:move", (event) => {
+	console.log("before mousedown", event);
+	if (mousePress === true && selectedTool === Tool_OBJECTGRAB) {
+		console.log("after mousedown", event);
+		canvas.selection = false;
+		canvas.renderAll();
+		const mouseEvent = event.e;
+		const delta = new fabric.Point(mouseEvent.movementX, mouseEvent.movementY);
+		canvas.relativePan(delta);
+	}
+});
 
+canvas.on("mouse:up", (event) => {
+	console.log(event);
+	mousePress = false;
+});
 
 
 
