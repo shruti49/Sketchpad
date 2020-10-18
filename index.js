@@ -14,6 +14,7 @@ let mousePress = false;
 
 const initCanvas = (id) => {
 	return new fabric.Canvas(id, {
+
 		selection: false,
 		backgroundColor: "#fff",
 		isDrawingMode: false,
@@ -27,7 +28,7 @@ const canvas = initCanvas("mycanvas");
 
 document.querySelector(".pencilBrush").addEventListener("click", function (e) {
 	selectedTool = Tool_PENCILBRUSH;
-	mousePress = true;
+	//mousePress = true;
 	canvas.isDrawingMode = true;
 	canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
 	// canvas.freeDrawingBrush.color = mycolor.value;
@@ -36,7 +37,7 @@ document.querySelector(".pencilBrush").addEventListener("click", function (e) {
 
 document.querySelector(".sparyBrush").addEventListener("click", function (e) {
 	selectedTool = Tool_SPRAYBRUSH;
-	mousePress = true;
+	//mousePress = true;
 	canvas.isDrawingMode = true;
 	canvas.freeDrawingBrush = new fabric.SprayBrush(canvas);
 	// canvas.freeDrawingBrush.color = mycolor.value;
@@ -45,27 +46,28 @@ document.querySelector(".sparyBrush").addEventListener("click", function (e) {
 
 document.querySelector(".objectGrab").addEventListener("click", function (e) {
 	selectedTool = Tool_OBJECTGRAB;
-	mousePress = true;
+	//mousePress = true;
 	canvas.isDrawingMode = false;
 })
 
 document.querySelector(".screenGrab").addEventListener("click", function (event) {
 	selectedTool = Tool_SCREEENGRAB;
-	mousePress = true;
 	canvas.isDrawingMode = false;
+	canvas.selection = false;
 })
 
 canvas.on("mouse:down", (event) => {
-	console.log(event);
-	if (mousePress === true && selectedTool === Tool_OBJECTGRAB) {
+	mousePress = true;
+	console.log("mouse down",selectedTool,mousePress);
+	if (mousePress === true && selectedTool === Tool_SCREEENGRAB) {
 		canvas.setCursor("grabbing");
 	}
 });
 
 canvas.on("mouse:move", (event) => {
-	console.log("before mousedown", event);
-	if (mousePress === true && selectedTool === Tool_OBJECTGRAB) {
-		console.log("after mousedown", event);
+	console.log("before mousedown", mousePress,selectedTool);
+	if (mousePress === true && selectedTool === Tool_SCREEENGRAB) {
+		console.log("mouse move",mousePress,selectedTool);
 		canvas.selection = false;
 		canvas.renderAll();
 		const mouseEvent = event.e;
@@ -75,7 +77,7 @@ canvas.on("mouse:move", (event) => {
 });
 
 canvas.on("mouse:up", (event) => {
-	console.log(event);
+	console.log("mouseup");
 	mousePress = false;
 });
 
