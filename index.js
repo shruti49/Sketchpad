@@ -1,340 +1,442 @@
+window.sketchpad = () => {
 
-const Tool_SCREEENGRAB = "screenGrab";
-const Tool_OBJECTGRAB = "objectGrab";
-const Tool_PENCILBRUSH = "pencilBrush";
-const Tool_SPRAYBRUSH = "sprayBrush";
-const Tool_LINE = "line";
-const Tool_RECTANGLE = "rectangle";
-const Tool_CIRCLE = "circle";
-const Tool_ERASER = "eraser";
-const Tool_TEXT = "text";
-const Tool_CLEAR = "clear";
-let selectedTool;
-let mousePress = false;
+    const Tool_SCREEENGRAB = "screenGrab";
+    const Tool_OBJECTGRAB = "objectGrab";
+    const Tool_PENCILBRUSH = "pencilBrush";
+    const Tool_SPRAYBRUSH = "sprayBrush";
+    const Tool_LINE = "line";
+    const Tool_RECTANGLE = "rectangle";
+    const Tool_CIRCLE = "circle";
+    const Tool_ERASER = "eraser";
+    const Tool_TEXT = "text";
+    const Tool_CLEAR = "clear";
+    let canvasContainer = document.querySelector(".canvas-container");
+    let canvasToolbaar1 = document.querySelector(".canvas-toolbar_1");
+    let canvasToolbaar2 = document.querySelector(".canvas-toolbar_2");
+    let widthLabel = document.querySelector("#label-width");
+    let font_size = document.querySelector("#fontSize");
+    let file_input = document.querySelector("#fileInput");
+    let mycolor = document.getElementById("myColor");
+    let drawingLineWidthEl = document.getElementById("line-width");
 
-const initCanvas = (id) => {
-	return new fabric.Canvas(id, {
+    let selectedTool = "pencilBrush";
+    let mousePressed = false;
+    let isRedoing = false;
+    let drawings = [];
+    let origX;
+    let origY;
+    let currentX;
+    let currentY;
+    let rect;
+    let circle;
+    let line;
+    let cursor;
+    let width;
+    let height;
+    let reader = new FileReader();
 
-		selection: false,
-		backgroundColor: "#fff",
-		isDrawingMode: false,
-		width: 800,
-		height: 600,
-		backgroundColor: "beige"
-	});
-};
+    const initCanvas = (id) => {
+        return new Fabric.Canvas(id, {
+            selection: false,
+            backgroundColor: "#fff",
+            isDrawingMode: false,
+        });
+    };
 
-const canvas = initCanvas("mycanvas");
+    const canvas = initCanvas("mycanvas");
 
-document.querySelector(".pencilBrush").addEventListener("click", function (e) {
-	selectedTool = Tool_PENCILBRUSH;
-	//mousePress = true;
-	canvas.isDrawingMode = true;
-	canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-	// canvas.freeDrawingBrush.color = mycolor.value;
-	// canvas.freeDrawingBrush.width = drawingLineWidthEl.value;
-})
-
-document.querySelector(".sparyBrush").addEventListener("click", function (e) {
-	selectedTool = Tool_SPRAYBRUSH;
-	//mousePress = true;
-	canvas.isDrawingMode = true;
-	canvas.freeDrawingBrush = new fabric.SprayBrush(canvas);
-	// canvas.freeDrawingBrush.color = mycolor.value;
-	// canvas.freeDrawingBrush.width = drawingLineWidthEl.value;
-})
-
-document.querySelector(".objectGrab").addEventListener("click", function (e) {
-	selectedTool = Tool_OBJECTGRAB;
-	//mousePress = true;
-	canvas.isDrawingMode = false;
-})
-
-document.querySelector(".screenGrab").addEventListener("click", function (event) {
-	selectedTool = Tool_SCREEENGRAB;
-	canvas.isDrawingMode = false;
-	canvas.selection = false;
-})
-
-canvas.on("mouse:down", (event) => {
-	mousePress = true;
-	console.log("mouse down",selectedTool,mousePress);
-	if (mousePress === true && selectedTool === Tool_SCREEENGRAB) {
-		canvas.setCursor("grabbing");
-	}
-});
-
-canvas.on("mouse:move", (event) => {
-	console.log("before mousedown", mousePress,selectedTool);
-	if (mousePress === true && selectedTool === Tool_SCREEENGRAB) {
-		console.log("mouse move",mousePress,selectedTool);
-		canvas.selection = false;
-		canvas.renderAll();
-		const mouseEvent = event.e;
-		const delta = new fabric.Point(mouseEvent.movementX, mouseEvent.movementY);
-		canvas.relativePan(delta);
-	}
-});
-
-canvas.on("mouse:up", (event) => {
-	console.log("mouseup");
-	mousePress = false;
-});
+    width = canvasContainer.clientWidth ;
+    height = canvasContainer.clientHeight - (canvasToolbaar1.clientHeight + canvasToolbaar2.clientHeight);
+    canvas.setWidth(width);
+    canvas.setHeight(height);
 
 
+    function reportWindowSize() {
+        width = canvasContainer.clientWidth;
+        height = canvasContainer.clientHeight - (canvasToolbaar1.clientHeight + canvasToolbaar2.clientHeight);
+        canvas.setHeight(height);
+        canvas.setWidth(width);
+        canvas.renderAll();
+    }
+
+    window.addEventListener('resize', reportWindowSize);
+
+    Fabric.Object.prototype.transparentCorners = false;
+    Fabric.Object.prototype.cornerColor = 'blue';
+    Fabric.Object.prototype.cornerStyle = 'circle';
+
+
+    mycolor.onchange = function () {
+        canvas.freeDrawingBrush.color = this.value;
+    };
+
+    drawingLineWidthEl.onchange = function () {
+        canvas.freeDrawingBrush.width = parseInt(this.value, 10) || 1;
+        widthLabel.innerHTML = this.value;
+    };
+
+    var newITextFromText = function (textObj) {
+        return new fabric.IText("", {
+            top: textObj.top,
+            left: textObj.left,
+            fontSize: textObj.fontSize,
+            fontFamily: textObj.fontFamily
+        });
+    }
+
+    //font_size.onchange = function () {
+    //    cursor.setFontSize(this.val);
+    //};
+
+    const imageAdded = (e) => {
+        const file = document.querySelector("#fileInput").files[0];
+        reader.readAsDataURL(file);
+    }
+
+    const ImageUploader = () => {
+        canvas.isDrawingMode = false;
+        file_input.addEventListener(("change"), imageAdded);
+        reader.addEventListener(("load"), () => {
+            fabric.Image.fromURL(reader.result, img => {
+                canvas.add(img);
+                canvas.requestRenderAll();
+            });
+        });
+    }
+    ImageUploader();
+
+    const toggleTool = (tool) => {
+        switch (tool) {
+            case Tool_SCREEENGRAB:
+                //canvas.setCursor("grab");
+                break;
+            case Tool_OBJECTGRAB:
+                //canvas.setCursor("move");
+                canvas.forEachObject(function (o) {
+                    o.set({ selectable: true }).setCoords();
+                }).selection = true;  
+                break;
+            case Tool_PENCILBRUSH:
+                //canvas.setCursor("crosshair");
+                canvas.isDrawingMode = true;
+                canvas.freeDrawingBrush = new Fabric.PencilBrush(canvas);              
+                canvas.freeDrawingBrush.color = mycolor.value;
+                canvas.freeDrawingBrush.width = 14;
+                break;
+            case Tool_SPRAYBRUSH:
+                //canvas.setCursor("crosshair");
+                canvas.freeDrawingBrush = new Fabric.SprayBrush(canvas);
+                canvas.freeDrawingBrush.color = mycolor.value;
+                canvas.freeDrawingBrush.width = 14;
+                break;
+            case Tool_ERASER:
+                //canvas.setCursor("default");
+                break;
+            case Tool_RECTANGLE:
+            case Tool_LINE:
+            case Tool_CIRCLE:
+                //canvas.setCursor("crosshair");
+                canvas.forEachObject(function (o) {
+                    o.selectable = false;
+                }).selection = false;
+                break;
+            case Tool_TEXT:
+                canvas.selection = true;
+                canvas.isDrawingMode = false;
+                cursor = new fabric.Text("Aa", {
+                    fontSize: 20
+                });
+                cursor.lockScalingX = true;
+                cursor.lockScalingY = true;
+                cursor.lockUniScaling = true;
+
+                canvas.add(cursor);
+                var hoverTarget = {
+                    obj: null,
+                    type: null
+                };
+                break;
+            case Tool_CLEAR:
+                canvas.clear()
+                break;
+            default:
+                break;
+        }
+        canvas.renderAll();
+        console.log("toggle :>> ", tool);
+    };
+
+    toggleTool(selectedTool);
+
+    canvas.on("mouse:down", (event) => {
+        mousePressed = true;
+        let pointer = canvas.getPointer(event.e);
+        origX = pointer.x;
+        origY = pointer.y;
+
+        if (mousePressed) {
+            switch (selectedTool) {
+                case Tool_SCREEENGRAB:
+                    canvas.isDrawingMode = false;
+                    canvas.setCursor("grabbing");
+                    break;
+
+                case Tool_ERASER:
+                    canvas.selection = false;
+                    canvas.setCursor("default");
+                    canvas.isDrawingMode = true;
+
+                    //let pointer = canvas.getPointer(event.e);
+                    //context.clearRect(
+                    //	points.x,
+                    //	pointer.y,
+                    //	drawingLineWidthEl.value,
+                    //	drawingLineWidthEl.value
+                    //);
+                    break;
+                case Tool_LINE:
+                    canvas.selection = false;
+                    canvas.isDrawingMode = false;
+                    canvas.setCursor("crosshair");
+                    var points = [pointer.x, pointer.y, pointer.x, pointer.y];
+                    line = new Fabric.Line(points, {
+                        originX: 'center',
+                        originY: 'center',
+                        stroke: mycolor.value,
+                        strokeWidth: parseInt(drawingLineWidthEl.value, 10) || 1,
+                        fill: 'rgba(0,0,0,0)',
+                    });
+                    canvas.add(line);
+                    break;
+                case Tool_CIRCLE:
+                   // canvas.isDrawingMode = false;
+                    canvas.setCursor("crosshair");
+                    circle = new Fabric.Circle({
+                        left: origX,
+                        top: origY,
+                        radius: 1,
+                        strokeWidth: parseInt(drawingLineWidthEl.value, 10) || 1,
+                        stroke: mycolor.value,
+                        fill: 'rgba(0,0,0,0)',
+                        selectable: true,
+                        originX: 'center',
+                        originY: 'center'
+                    });
+                    canvas.add(circle);
+                    break;
+                case Tool_RECTANGLE:
+                    canvas.isDrawingMode = false;
+                    canvas.setCursor("crosshair");
+                    rect = new Fabric.Rect({
+                        left: origX,
+                        top: origY,
+                        stroke: mycolor.value,
+                        strokeWidth: parseInt(drawingLineWidthEl.value, 10) || 1,
+                        originX: 'left',
+                        originY: 'top',
+                        width: pointer.x - origX,
+                        height: pointer.y - origY,
+                        angle: 0,
+                        fill: 'rgba(0,0,0,0)',
+                        transparentCorners: false,
+                        selectable: false
+                    });
+                    canvas.add(rect);
+                    break;
+                case Tool_TEXT:
+                    canvas.selection = true;
+                    canvas.isDrawingMode = false;
+                    var t = newITextFromText(cursor);
+                    canvas.add(t).setActiveObject(t);
+                    t.enterEditing(); 
+                    break;
+                default:
+                    break;
+
+            }
+        }
+        canvas.renderAll();
+        console.log("mousedown :>> ", selectedTool);
+    });
+
+
+    canvas.on("mouse:move", (event) => {
+        let pointer = canvas.getPointer(event.e);
+        currentX = pointer.x;
+        currentY = pointer.y;
+        canvas.selection = false;
+        // canvas.isDrawingMode = false;
+        drawCanvas(currentX, currentY);
+        //connection.invoke('draw', origX, origY, currentX, currentY);       
+    });
+
+    canvas.on("mouse:up", (event) => {
+        mousePressed = false;
+        //canvas.renderAll();
+        //console.log(event);
+    });
+
+    document.querySelectorAll("[data-tool]").forEach((item, i) => {
+        item.addEventListener("click", (event) => {
+            document.querySelector("[data-tool].selectedTool").classList.toggle("selectedTool");
+            item.classList.toggle("selectedTool");
+            selectedTool = item.getAttribute("data-tool");
+            console.log("activatedTool :>> ", selectedTool);
+            toggleTool(selectedTool);
+        });
+    });
+
+
+    const undoDrawings = () => {
+        if (canvas._objects.length > 0) {
+            drawings.push(canvas._objects.pop());
+            canvas.renderAll();
+        }
+    }
+
+    canvas.on('object:added', function () {
+        if (!isRedoing) {
+            drawings = [];
+        }
+        isRedoing = false;
+    });
+
+    const redoDrawings = () => {
+        if (drawings.length > 0) {
+            isRedoing = true;
+            canvas.add(drawings.pop());
+        }
+    }
+
+    document.querySelectorAll("[data-command]").forEach((item, i) => {
+        item.addEventListener("click", (event) => {
+            let command = item.getAttribute("data-command");
+            if (command === "undo") {
+                undoDrawings();
+            } else if (command === "redo") {
+                redoDrawings();
+            }
+        });
+    });
+
+
+    function openFullscreen(e) {
+        const ele = document.querySelector(".canvas-container");
+        if (!document.fullscreenElement) {
+            ele.requestFullscreen().catch((err) => {
+                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    document.querySelector("#maxBtn").addEventListener("click", openFullscreen);
+
+    $("#maxBtn").click(function () {
+        $(this).find("i").toggleClass("fa-compress-alt fa-expand-alt");
+    });
+
+ 
+    window.getSketchpadValue = () => {
+        let JsonString = JSON.stringify(canvas);
+        return JsonString;
+    }
+
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl('/draw')
+        .build();
+
+
+    function drawCanvas(currentX,currentY) {
+        switch (selectedTool) {
+            case Tool_SCREEENGRAB:
+                canvas.setCursor("grab");
+                if (mousePressed) {
+                    canvas.isDrawingMode = false;
+                    canvas.selection = false;
+                    canvas.setCursor("grabbing");
+                    canvas.renderAll();
+                    const mouseEvent = event.e;
+                    const delta = new Fabric.Point(mouseEvent.movementX, mouseEvent.movementY);
+                    canvas.relativePan(delta);
+                }
+                break;
+            case Tool_ERASER:
+                canvas.setCursor("default");
+                if (mousePressed) {
+                    canvas.selection = false;
+                    canvas.setCursor("default");
+                    canvas.isDrawingMode = true;
+                }
+                break;
+            case Tool_LINE:
+                canvas.setCursor("crosshair");
+                if (mousePressed) {
+                    canvas.isDrawingMode = false;
+                    line.set({ x2: currentX, y2: currentY });
+                }
+                break;
+            case Tool_CIRCLE:
+                canvas.setCursor("crosshair");
+                if (mousePressed) {
+                    canvas.isDrawingMode = false;
+                    circle.set({ radius: Math.abs(origX - currentX) });
+                }
+                break;
+            case Tool_RECTANGLE:
+                canvas.setCursor("crosshair");
+                if (mousePressed) {
+                    if (origX > currentX) {
+                        rect.set({ left: Math.abs(currentX) });
+                    }
+                    if (origY > currentY) {
+                        rect.set({ top: Math.abs(currentY) });
+                    }
+                    rect.set({ width: Math.abs(origX - currentX) });
+                    rect.set({ height: Math.abs(origY - currentY) });
+                }
+                
+                break;
+            case Tool_TEXT:
+                cursor.set({
+                    left: event.e.layerX,
+                    top: event.e.layerY,
+                });
+                break;
+            default:
+                break;
+                console.log("mouseMove :>> ", selectedTool);
+        }
+        canvas.renderAll();
+    }
+
+    connection.on('draw', function (prev_x, prev_y, x, y) {
+        console.log("X: " + x + " Y: " + y);
+        drawCanvas(prev_x, prev_y, x, y);
+    });
+    connection.start();
+
+}
 
 
 
+	//let drawingShadowColorEl = document.getElementById("drawing-shadow-color");
+	//let drawingShadowWidth = document.getElementById("drawing-shadow-width");
+	//let drawingShadowOffset = document.getElementById("drawing-shadow-offset");
 
 
+	//drawingShadowColorEl.onchange = function () {
+	//	canvas.freeDrawingBrush.shadow.color = this.value;
+	//};
 
+	//drawingShadowWidth.onchange = function () {
+	//	canvas.freeDrawingBrush.shadow.blur = parseInt(this.value, 10) || 0;
+	//	this.previousSibling.innerHTML = this.value;
+	//};
+	//drawingShadowOffset.onchange = function () {
+	//	canvas.freeDrawingBrush.shadow.offsetX = parseInt(this.value, 10) || 0;
+	//	canvas.freeDrawingBrush.shadow.offsetY = parseInt(this.value, 10) || 0;
+	//	this.previousSibling.innerHTML = this.value;
+	//};
 
-
-
-
-
-// const Tool_SCREEENGRAB = "screenGrab";
-// const Tool_OBJECTGRAB = "objectGrab";
-
-// const Tool_PENCILBRUSH = "pencilBrush";
-// const Tool_SPRAYBRUSH = "sprayBrush";
-
-// const SHAPE_LINE = "line";
-// const SHAPE_RECTANGLE = "rectangle";
-// const SHAPE_CIRCLE = "circle";
-// const SHAPE_POLYLINE = "circle";
-// const SHAPE_TRIANGLE = "circle";
-// const SHAPE_ELLIPSE = "circle";
-// const SHAPE_POLYGON = "circle";
-
-// class Paint {
-// 	constructor(canvasId) {
-// 		this.canvasId = canvasId;
-// 		this.mousePress = false;
-// 		this.canvas = new fabric.Canvas(this.canvasId, {
-// 			selection: false,
-// 			backgroundColor: "lightblue",
-// 			isDrawingMode: false,
-// 			width:800,
-// 			height:800,		
-// 		});
-// 	}
-
-// 	set activatedTool(tool) {
-// 		this.tool = tool;
-// 		console.log(this.tool);
-// 	}
-
-// 	set lineWidth(linewidth) {
-// 		this.line_Width = linewidth;
-// 		this.context.lineWidth = this.line_Width;
-// 		console.log(linewidth);
-// 	}
-
-// 	set selectedColor(color) {
-// 		this.color = color;
-// 		this.context.strokeStyle = this.color;
-// 		console.log(color);
-// 	}
-
-// 	init() {
-// 		//this.canvas.setCursor("crosshair");
-// 		this.canvas.on("mouse:down", (event) => this.onMouseDown(event));
-// 		// switch (this.tool) {
-// 		// 	case Tool_PENCILBRUSH:
-//         //         this.canvas.freeDrawingBrush = new fabric.PencilBrush(this.canvas);              
-//         //         this.canvas.freeDrawingBrush.color = "black";
-//         //         this.canvas.freeDrawingBrush.width = 5;
-// 		// 		break;
-// 		// 		case Tool_SPRAYBRUSH:
-// 		// 			this.canvas.freeDrawingBrush = new fabric.SprayBrush(this.canvas);              
-// 		// 			this.canvas.freeDrawingBrush.color = "black";
-// 		// 			this.canvas.freeDrawingBrush.width = 5;
-// 		// 			break;
-// 		// 		default:
-// 		// 			break;
-// 		// }
-// 	}
-
-// 	onMouseDown(event) {
-// 		this.canvas.on("mouse:move", (event) => this.onMouseMove(event)); 
-// 		this.canvas.on("mouse:up", (event) => this.onMouseUp(event));
-// 		this.mousePress = true;
-// 		console.log("mousedown", event.target);
-
-
-// 	}
-
-// 	onMouseMove(event) {
-// 		this.canvas.on("mouse:move", (event) => this.onMouseMove(event)); 
-// 		console.log(this.mousePress);
-// 		if(this.mousePress === true) {
-// 			switch (this.tool) {
-// 				case Tool_PENCILBRUSH:
-// 					this.canvas.isDrawingMode = true;
-// 					this.canvas.freeDrawingBrush = new fabric.PencilBrush(this.canvas);              
-// 					this.canvas.freeDrawingBrush.color = "black";
-// 					this.canvas.freeDrawingBrush.width = 5;
-// 					break;
-// 					case Tool_SPRAYBRUSH:
-// 						this.canvas.isDrawingMode = true;
-// 						this.canvas.freeDrawingBrush = new fabric.SprayBrush(this.canvas);              
-// 						this.canvas.freeDrawingBrush.color = "black";
-// 						this.canvas.freeDrawingBrush.width = 5;
-// 						break;
-// 					default:
-// 						break;
-// 			}
-// 			this.canvas.renderAll();
-// 			console.log("mousemove", event.target);
-// 		}
-// 		this.canvas.renderAll();
-// 	}
-
-// 	onMouseUp(event) {
-// 		this.mousePress = false;
-// 		this.canvas.on("mouse:move", (event) => ); 
-// 		console.log(this.mousePress);
-// 		console.log("mouseup", event);
-// 	}
-// }
-// //INITIALIZING PAINT CLASS
-// let paint = new Paint(myCanvas);
-// paint.init();
-// paint.activatedTool = Tool_PENCILBRUSH;
-
-// 	document.querySelectorAll("[data-brush]").forEach((item, i) => {
-// 		item.addEventListener("click", (event) => {
-// 			document.querySelector("[data-brush].selectedTool").classList.toggle("selectedTool");
-// 			item.classList.toggle("selectedTool");
-// 			let activeTool = item.getAttribute("data-brush");
-// 			paint.activatedTool = activeTool;
-// 		});
-// 	});
-
-
-// 	// 	onMouseMove(event) {
-// 	// 		this.canvas.onmousemove = (event) => this.onMouseMove(event);
-// 	// 		this.currentPos = getMouseCoordinates(event, this.canvas);
-
-// 	// 		switch (this.tool) {
-// 	// 			case Tool_LINE:
-// 	// 			case Tool_RECTANGLE:
-// 	// 			case Tool_CIRCLE:
-// 	// 				this.drawShape();
-// 	// 				break;
-// 	// 			case Tool_PENCIL:
-// 	// 				this.draw(this.line_Width);
-// 	// 				break;
-// 	// 			case Tool_ERASER:
-// 	// 				this.context.clearRect(
-// 	// 					this.currentPos.x,
-// 	// 					this.currentPos.y,
-// 	// 					this.line_Width,
-// 	// 					this.line_Width
-// 	// 				);
-// 	// 				break;
-// 	// 			default:
-// 	// 				break;
-// 	// 		}
-// 	// 	}
-
-// 	// 	onMouseUp(event) {
-// 	// 		//IF tool is rectange then push rectangle
-// 	// 		if (this.tool === Tool_RECTANGLE) {
-// 	// 			this.shapes.push({
-// 	// 				a: this.startPos.x,
-// 	// 				b: this.startPos.y,
-// 	// 				width: this.currentPos.x - this.startPos.x,
-// 	// 				height: this.currentPos.y - this.startPos.y,
-// 	// 				isDragging: false,
-// 	// 			});
-// 	// 			//this.canvas.add(rect);
-// 	// 		} //IF tool is circle then push circle
-// 	// 		else if (this.tool === Tool_CIRCLE) {
-// 	// 			this.shapes.push({
-// 	// 				a: this.startPos.x,
-// 	// 				b: this.startPos.y,
-// 	// 				radius: circleDistanceFormula(this.startPos, this.currentPos),
-// 	// 				sAngle: 0,
-// 	// 				eAngle: 2 * Math.PI,
-// 	// 				counterclockwise: false,
-// 	// 				isDragging: false,
-// 	// 			});
-// 	// 		} //IF tool is pencil then push pencil drawing
-// 	// 		else if (this.tool === Tool_PENCIL) {
-// 	// 			this.shapes.push({ a: this.startPos.x, b: this.startPos.y });
-// 	// 		} else if (this.tool === Tool_LINE) {
-// 	// 		}
-
-// 	// 		console.log(this.shapes);
-
-// 	// 		this.canvas.onmousemove = null;
-// 	// 		document.onmouseup = null;
-// 	// 	}
-
-
-// 	// }
-
-
-
-// 	// //RANGE SLIDER
-// 	// let slider = document.getElementById("rangeSlider");
-
-// 	// noUiSlider.create(slider, {
-// 	// 	start: [5],
-// 	// 	tooltips: true,
-// 	// 	range: {
-// 	// 		min: [0],
-// 	// 		max: [20],
-// 	// 	},
-// 	// 	format: wNumb({
-// 	// 		decimals: 0,
-// 	// 	}),
-// 	// });
-
-// 	// slider.noUiSlider.on("update", function (values, handle) {
-// 	// 	paint.lineWidth = values[handle];
-// 	// 	paint.eraserSize = values[handle];
-// 	// });
-
-// 	// //COLOR SELECTOR
-// 	// let color = document.getElementById("myColor");
-// 	// color.onchange = function () {
-// 	// 	paint.selectedColor = this.value;
-// 	// };
-
-
-
-// 	// document.querySelectorAll("[data-command]").forEach((item, i) => {
-// 	// 	item.addEventListener("click", (event) => {
-// 	// 		let command = item.getAttribute("data-command");
-// 	// 		if (command === "undo") {
-// 	// 			paint.undoCommand();
-// 	// 		} else if (command === "download") {
-// 	// 			let canvas = document.getElementById("canvas");
-// 	// 			let image = canvas.toDataURL("image/png", 1.0).replace("images/png", "images/octet-stream");
-// 	// 			let link = document.createElement("a");
-// 	// 			link.download = "bmc.png";
-// 	// 			link.href = image;
-// 	// 			link.click();
-// 	// 		}
-// 	// 	});
-// 	// });
-
-// 	// function openFullscreen(e) {
-// 	// 	const ele = document.querySelector(".canvas-container");
-// 	// 	if (!document.fullscreenElement) {
-// 	// 		ele.requestFullscreen().catch((err) => {
-// 	// 			alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-// 	// 		});
-// 	// 	} else {
-// 	// 		document.exitFullscreen();
-// 	// 	}
-// 	// }
-
-// 	// document.querySelector("#maxBtn").addEventListener("click", openFullscreen);
-
-// 	// $("#maxBtn").click(function () {
-// 	// 	$(this).find("i").toggleClass("fa-compress-alt fa-expand-alt");
-// 	// });

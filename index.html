@@ -7,35 +7,36 @@
     <title>Document</title>
     <link rel="stylesheet" href="index.css">
     
+    </pre>
 </head>
 
 <body>
-    <div class="shapes"> 
-        <button data-shape="rectangle">rect</button>
-        <button data-shape="circle">circle</button>
-        <button data-shape="ellipse">ellipse</button>
-        <button data-shape="line">line</button>
-        <button data-shape="polyline">polyline</button>
-        <button data-shape="triangle">triangle</button>
-        <button data-shape="polygon">polygon</button>
+    <div class="shapes">
+        <button data-shape="rectangle" class="rectangle">rect</button>
+        <button data-shape="circle" class="circle">circle</button>
+        <button data-shape="ellipse" class="ellipse">ellipse</button>
+        <button data-shape="line" class="line">line</button>
+        <button data-shape="polyline" class="polyline">polyline</button>
+        <button data-shape="triangle" class="triangle">triangle</button>
+        <button data-shape="polygon" class="polygon">polygon</button>
     </div>
-<div class="brushes">
-    <button class="pencilBrush" data-brush="pencilBrush">pencil</button>
-    <button class="sparyBrush" data-brush="sprayBrush">spray</button>
-</div>
-<div class="commands">
-    <button data-command="undo">undo</button>
-    <button data-command="redo">redo</button>
-    <button data-command="clear">clear</button>
-</div>
+    <div class="brushes">
+        <button class="pencilBrush" data-brush="pencilBrush">pencil</button>
+        <button class="sparyBrush" data-brush="sprayBrush">spray</button>
+    </div>
+    <div class="commands">
+        <button data-command="undo">undo</button>
+        <button data-command="redo">redo</button>
+        <button data-command="clear">clear</button>
+    </div>
 
-<div class="tools">
-    <button data-tool="screenGrab" class="screenGrab">pan</button>
-    <button class="objectGrab" data-tool="objectGrab">select</button>
-</div>
+    <div class="tools">
+        <button data-tool="screenGrab" class="screenGrab">pan</button>
+        <button class="objectGrab" data-tool="objectGrab">select</button>
+    </div>
     <canvas id="mycanvas"></canvas>
 </body>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.1.0/fabric.min.js"></script>
 <script src="index.js"></script>
-
 </html>
